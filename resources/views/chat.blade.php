@@ -9,13 +9,13 @@
     <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
     <style>
         body {
-            background-color: #f8f9fa;
+            background-color: #28282B;
             display: flex;
         }
 
         .sidebar {
             width: 250px;
-            background: #343a40;
+            background: #1A1A1D;
             color: white;
             padding: 20px;
             height: 100vh;
@@ -44,7 +44,7 @@
         }
 
         .user-message {
-            background-color: #007bff;
+            background-color: #1A1A1D;
             color: white;
             align-self: flex-end;
             text-align: right;
@@ -62,7 +62,7 @@
         .session-bubble {
             display: inline-flex;
             align-items: center;
-            background-color: #343a40;
+            background-color: #28282B;
             color: white;
             padding: 10px 15px;
             margin: 5px;
@@ -75,7 +75,7 @@
         }
 
         .session-bubble:hover {
-            background-color: rgb(123, 139, 155);
+            background-color:rgb(58, 58, 63);
         }
 
         .delete-btn {
@@ -102,11 +102,11 @@
             flex-direction: column;
             justify-content: center; /* Pusat vertikal */
             align-items: center; /* Pusat horizontal */
-            background: #f8f9fa;
+            background: #28282B;
         }
 
         .chat-input {
-            background: #fff;
+            background: #343a40;
             padding: 8px;
             border-radius: 25px;
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
@@ -152,7 +152,7 @@
 </div>
 
 <div class="chat-container">
-    <h4 class="text-center">Chatbot AI</h4>
+    <h4 class="text-center" style="color:white">Chatbot AI</h4>
     <div class="chat-box d-flex flex-column" id="chatbox"></div>
     <div class="chat-input-container">
         <div id="chatForm" enctype="multipart/form-data" class="chat-input d-flex align-items-center">
@@ -163,14 +163,15 @@
                     <input type="file" id="fileInput" class="d-none" accept="image/*, .pdf, .doc, .docx, .txt" />
                 </label> -->
             </div>
-            <button class="btn btn-default" onclick="sendMessage()">➤</button>
+            <button class="btn btn-default" onclick="sendMessage()" style="color:white">➤</button>
         </div>
     </div>
 </div>
 
 <script>
     let sessionId = localStorage.getItem('chat_session') || '';
-    console.log(sessionId);
+    
+    // console.log(sessionId);
     $.ajaxSetup({
         headers: {
             'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
@@ -179,6 +180,7 @@
     function startNewChat() {
         $.post('/chat/start')
         .done(function(data) {
+            currentSession = data.session_id;
             sessionId = data.session_id;
             localStorage.setItem('chat_session', sessionId);
             $('#chatbox').html('');
@@ -198,7 +200,7 @@
 
         $('#chatbox').append('<div class="message user-message">' + message + '</div>');
         $('#message').val('');
-        var loadingIndicator = $('<div class="message bot-message loading">Bot sedang mengetik...</div>');
+        var loadingIndicator = $('<div class="message bot-message loading">Tunggu Sebentar...</div>');
         $('#chatbox').append(loadingIndicator);
         $.post('/chat', {message: message, session_id: sessionId})
         .done(function(data) {
@@ -265,6 +267,9 @@
                                     sessionElement.remove();
                                     localStorage.removeItem('chat_session');
                                     // console.log(`Session dengan ID ${sessionId} dihapus.`);
+                                    if (currentSession === sessionId) {
+                                        $('#chatbox').html('<p style="text-align: center; color: #aaa;">Chat telah dihapus</p>');
+                                    }
                                 },
                                 error: function (xhr) {
                                     console.error("Gagal menghapus session:", xhr.responseText);
@@ -278,6 +283,8 @@
                         let sessionId = $(this).attr('data-session-id');
                         localStorage.setItem('chat_session', sessionId);
                         loadChatHistory(sessionId);
+                        currentSession = sessionId;
+                        // console.log(currentSession);
                     });
 
                     sessionList.append(sessionBubble);
