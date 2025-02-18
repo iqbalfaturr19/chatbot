@@ -20,6 +20,7 @@ class ChatController extends Controller
         $validator = Validator::make($request->all(), [
             'message' => 'required|string',
             'session_id' => 'required|string',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
         ]);
     
         if ($validator->fails()) {
@@ -27,12 +28,20 @@ class ChatController extends Controller
         }
 
         $sessionId = $request->session_id;
-        $userMessage = $request->message;
+        $userMessage = isset($request->message) ? $request->message : '';
+        $imagePath = null;
+
+        if ($request->hasFile('image')) {
+            $image = $request->file('image');
+            $imageName = time() . '_' . $image->getClientOriginalName();
+            $imagePath = $image->storeAs('uploads/chat_images', $imageName, 'public');
+        }
 
         $session = ChatSession::firstOrCreate(
             ['session_id' => $sessionId],
             ['title' => $userMessage]
         );
+        
         $history = ChatHistory::where('session_id', $sessionId)
         ->orderBy('created_at')
         ->get(['user_message', 'bot_response']);
